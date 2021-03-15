@@ -1,0 +1,19 @@
+{
+  "name": "cloud-simulations",
+  "version": "1.0.0",
+  "description": "DMD senior design project spring 2021.",
+  "main": "server.js",
+  "author": "Dzung Nguyen",
+  "dependencies": {
+    "express": "^4.16.4"
+  },
+  "engines": {
+    "node": "8.x"
+  },
+  "license": "MIT",
+  "keywords": [
+    "cesium",
+    "glitch",
+    "express"
+  ]
+}
