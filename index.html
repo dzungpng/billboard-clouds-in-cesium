@@ -7,50 +7,151 @@
 </head>
 <body>
   <div id="cesiumContainer"></div>
+  <div id="toolbar">
+    <input type="checkbox" id="toggle-cumulus-layer" name="toggle-cumulus-layer" value="CumulusLayer" checked>
+    <label for="toggle-cumulus-layer" id="white-text">Cumulus Layer</label><br>
+    <input type="checkbox" id="toggle-stratocumulus-layer" name="toggle-stratocumulus-layer" value="StratocumulusLayer" checked>
+    <label for="toggle-stratocumulus-layer" id="white-text">stratocumulus Layer</label><br>
+  </div>
   <script>
     // Get your token from https://cesium.com/ion/tokens
     Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiYWZkZjRjZi0wYWVlLTRmYmUtOWNkOC0zNGUyOGE4ZWM4YzIiLCJpZCI6Mzg1MCwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTUzOTA2MTIyOH0.Nu7vAd57CwhRNnAi3L8Q0CABXfkOlzhaVqfiRXK3i-c';
     const viewer = new Cesium.Viewer('cesiumContainer', {
       terrainProvider: Cesium.createWorldTerrain()
     });
-    const camera = viewer.scene.camera; 
-    
-    // Get position of camera (in Cartesian3)
-    const cameraPos = camera.positionCartographic;
-    const cameraPosLat = 40.03883;
-    const cameraPosLon = -75.59777;
-    
-    // Generate some random positions to place clouds around the camera position
-    const size = 1; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
-    const step = 0.1;
-    const maxCloudAltitude = 7.6e3;
-    const minCloudAltitude = 3e3;
-    for(let i = -size/2; i < size/2 + step; i+=step) {
-      for(let j=-size/2; j < size/2 + step; j+=step) {
-        let latitude = cameraPosLat + i + Math.random() * step;
-        let longitude = cameraPosLon + j + Math.random() * step;
-        // Compute a random altitude between two altitudes which clouds typically appears
-        let altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
-        viewer.entities.add({
-          position: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
-          billboard: {
-            //image: "https://cdn.glitch.com/adc0001d-18b0-4d7f-a1d5-acd92a31a93c%2Fnibonstratus_cloud_texture.png?v=1611981572115",
-            image: './images/ellipsoid.png',
-            sizeInMeters: true,
-            scale: 2
-          },
-        });
+    const camera = viewer.scene.camera;
+    var entities = viewer.entities;
+
+    //Create Entity "folders" to allow us to turn on/off entities as a group.
+    var cumulusCloudContainer = entities.add(new Cesium.Entity());
+    var stratocumulusCloudContainer = entities.add(new Cesium.Entity());
+
+    // CLOUD GENERATION FUNCTIONS
+    function cumulusLayer() {
+      // Get position of camera (in Cartesian3)
+      const cameraPos = camera.positionCartographic;
+      const cameraPosLat = cameraPos.latitude * 180/Math.PI;
+      const cameraPosLon = cameraPos.longitude * 180/Math.PI;
+      
+      // Generate some random positions to place clouds around the camera position
+      const size = 1; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
+      const step = 0.1;
+      const maxCloudAltitude = 3e3;
+      const minCloudAltitude = 2e3;
+      for(let i = -size/2; i < size/2 + step; i+=step) {
+        for(let j=-size/2; j < size/2 + step; j+=step) {
+          let latitude = cameraPosLat + i + Math.random() * step;
+          let longitude = cameraPosLon + j + Math.random() * step;
+          // Compute a random altitude between two altitudes which clouds typically appears
+          let altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
+          viewer.entities.add({
+            parent: cumulusCloudContainer,
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
+            billboard: {
+              //image: "https://cdn.glitch.com/adc0001d-18b0-4d7f-a1d5-acd92a31a93c%2Fnibonstratus_cloud_texture.png?v=1611981572115",
+              image: `./images/cumulus_${Math.floor(Math.random() * 6) + 1}.png`,
+              dimensions: true,
+              scale: 4
+            },
+          });
+        }
       }
     }
+
+    function stratocumulusLayer() {
+      // Get position of camera (in Cartesian3)
+      const cameraPos = camera.positionCartographic;
+      const cameraPosLat = cameraPos.latitude * 180/Math.PI;
+      const cameraPosLon = cameraPos.longitude * 180/Math.PI;
+      
+      // Generate some random positions to place clouds around the camera position
+      const size = 1; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
+      const step = 0.2;
+      const maxCloudAltitude = 3e3;
+      const minCloudAltitude = 2e3;
+      for(let i = -size/2; i < size/2 + step; i+=step) {
+        for(let j=-size/2; j < size/2 + step; j+=step) {
+          let latitude = cameraPosLat + i + Math.random() * step;
+          let longitude = cameraPosLon + j + Math.random() * step;
+          // Compute a random altitude between two altitudes which clouds typically appears
+          let altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
+          viewer.entities.add({
+            parent: stratocumulusCloudContainer,
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
+            billboard: {
+              image: `./images/cumulus_${Math.floor(Math.random() * 2) + 1}.png`, // Right now it's just really big cumulus clouds. TODO: make actual cumulus clusters
+              sizeInMeters: true,
+              scale: 6
+            },
+          });
+        }
+      }
+    }
+
+    // function cirrusLayer() {
+    //   // Get position of camera (in Cartesian3)
+    //   const cameraPos = camera.positionCartographic;
+    //   const cameraPosLat = cameraPos.latitude * 180/Math.PI;
+    //   const cameraPosLon = cameraPos.longitude * 180/Math.PI;
+      
+    //   // Generate some random positions to place clouds around the camera position
+    //   const span = 1; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
+    //   const step = 0.2;
+    //   const maxCloudAltitude = 7e3;
+    //   const minCloudAltitude = 6e3;
+    //   const sideLengthX = 0.001; 
+    //   const sideLengthY = 0.002;
+    //   for(let i = -span/2; i < span/2 + step; i+=step) {
+    //     for(let j=-span/2; j < span/2 + step; j+=step) {
+    //       console.log('here');
+    //       let latitude = cameraPosLat + i + Math.random() * step;
+    //       let longitude = cameraPosLon + j + Math.random() * step;
+    //       // Compute a random altitude between two altitudes which clouds typically appears
+    //       let altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
+    //       // let center = Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude); // Center of rectangle
+    //       viewer.entities.add({
+    //         parent: stratocumulusCloudContainer,
+    //         //position: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
+    //         rectangle: {
+    //           coordinates: Cesium.Rectangle.fromDegrees(
+    //             latitude - sideLengthX,
+    //             longitude + sideLengthY,
+    //             latitude + sideLengthX,
+    //             longitude - sideLengthY
+    //           ),
+    //           material: `./images/cirrus_${1}.png`, // Right now it's just really big cumulus clouds. TODO: make actual cumulus clusters
+    //           height: altitude
+    //         },
+    //       });
+    //     }
+    //   }
+    // }
+
+    // UI ACTION LISTENERS
+    var UI_toggleCumulusLayer = document.querySelector('#toggle-cumulus-layer');
+    UI_toggleCumulusLayer.addEventListener('change',function() {
+      cumulusCloudContainer.show = UI_toggleCumulusLayer.checked;
+    });
+
+    var UI_toggleStatocumulusLayer = document.querySelector('#toggle-stratocumulus-layer');
+    UI_toggleStatocumulusLayer.addEventListener('change',function() {
+      stratocumulusCloudContainer.show = UI_toggleStatocumulusLayer.checked;
+    });
     
     camera.setView({
-        destination : new Cesium.Cartesian3(1223492.0847721598, -4727278.059257026, 4089499.895268888),
+        destination : new Cesium.Cartesian3(-2709226.5068758843, -4271652.782730928, 3871990.2917652987),
         orientation : {
-            direction : new Cesium.Cartesian3(-0.2716278044959114, 0.5533620236116934, 0.7874063796090953),
-            up : new Cesium.Cartesian3(0.2038711108083718, -0.7665148745155504, 0.6090086348518965),
+            direction : new Cesium.Cartesian3(-0.18947950947081874, 0.8120077307898012, 0.5520334778147933),
+            up : new Cesium.Cartesian3(-0.45337507593664794, -0.5710497241501201, 0.6843633925536277),
         },
         duration : 3
     })
+
+    // Adding layers
+    //cumulusLayer();
+    //stratocumulusLayer();
+    //cirrusLayer();
+
   </script>
 </body>
 </html>
