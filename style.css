@@ -17,3 +17,7 @@ body {
 #white-text {
   color: white;
 }
+#return-to-ground-button {
+  margin-top: 5%;
+  position: relative;
+}
