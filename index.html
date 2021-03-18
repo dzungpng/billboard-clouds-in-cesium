@@ -26,10 +26,10 @@
     <button type="button" id="add-plane-button" class="btn btn-secondary" onclick="" style="margin-top: 5%;">Aircraft view</button>
     <br>
     <label for="cloud-density-range" id="white-text" class="form-label" style="margin-top: 10%; margin-bottom: -2px;">Cloud Density</label>
-    <input type="range" class="form-range" id="cloud-density-range" min="0" max="5">
-    <br>
+    <input type="range" class="form-range" id="cloud-density-range" value="1" min="1" max="4" onchange="changeCloudDensity(this.value)">
+    <!-- <br>
     <label for="cloud-height-range" id="white-text" class="form-label" style="margin-top: 10%; margin-bottom: -2px;">Cloud Height</label>
-    <input type="range" class="form-range" id="cloud-heightrange" min="0" max="5">
+    <input type="range" class="form-range" id="cloud-heightrange" value="0" min="0" max="2000" step="500" onchange="changeCloudHeight(this.value)"> -->
   </div>
   <script>
     // Setting up the scene
@@ -41,19 +41,23 @@
     var entities = viewer.entities;
     viewer.scene.moon = undefined;
     viewer.scene.skyAtmosphere.brightnessShift = 0.6;
-
+    let prevCameraPos = new Cesium.Cartesian3();
+    camera.position.clone(prevCameraPos);
 
     //Create Entity "folders" to allow us to turn on/off entities as a group.
-    var cumulusCloudContainer = new Cesium.EntityCollection();
-    var stratocumulusCloudContainer = new Cesium.EntityCollection();
-    var verticalCloudContainer = new Cesium.EntityCollection();
+    var cumulusCloudContainer1 = new Cesium.EntityCollection();
+    var cumulusCloudContainer2 = new Cesium.EntityCollection({show: false});
+
+    var stratocumulusCloudContainer1 = new Cesium.EntityCollection();
+    var stratocumulusCloudContainer2 = new Cesium.EntityCollection({show: false});
+
+    var verticalCloudContainer1 = new Cesium.EntityCollection();
+    var verticalCloudContainer2 = new Cesium.EntityCollection({show: false});
+
     var altostratusCloudContainerPrimitive = new Cesium.PrimitiveCollection();
 
-
-
-    
     // CLOUD GENERATION FUNCTIONS
-    function cumulusLayer() {
+    function cumulusLayer(plusAltitude) {
       // Get position of camera (in Cartesian3)
       const cameraPos = camera.positionCartographic;
       const cameraPosLat = cameraPos.latitude * 180 / Math.PI;
@@ -69,8 +73,8 @@
           let latitude = cameraPosLat + i + Math.random() * step;
           let longitude = cameraPosLon + j + Math.random() * step;
           // Compute a random altitude between two altitudes which clouds typically appears
-          let altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
-          var cloud = viewer.entities.add({
+          let altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude + plusAltitude;
+          var cloud1 = viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
             billboard: {
               image: `./images/cumulus_${Math.floor(Math.random() * 6) + 1}.png`,
@@ -78,7 +82,20 @@
               scale: Math.floor(Math.random() * 6) + 4
             },
           });
-          cumulusCloudContainer.add(cloud);
+          cumulusCloudContainer1.add(cloud1);
+
+          latitude = cameraPosLat + i + Math.random() * step;
+          longitude = cameraPosLon + j + Math.random() * step;
+          altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude + plusAltitude;
+          var cloud2 = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
+            billboard: {
+              image: `./images/cumulus_${Math.floor(Math.random() * 6) + 1}.png`,
+              sizeInMeters: true,
+              scale: Math.floor(Math.random() * 6) + 4
+            },
+          });
+          cumulusCloudContainer2.add(cloud2)
         }
       }
     }
@@ -100,7 +117,7 @@
           let longitude = cameraPosLon + j + Math.random() * step;
           // Compute a random altitude between two altitudes which clouds typically appears
           let altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
-          var cloud = viewer.entities.add({
+          var cloud1 = viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
             billboard: {
               image: `./images/cumulus_${Math.floor(Math.random() * 2) + 1}.png`, // TODO: make actual cumulus clusters. Right now it's just really big cumulus clouds. 
@@ -109,7 +126,21 @@
               color: new Cesium.Color(1.0, 1.0, 1.0, 0.99)
             },
           });
-          stratocumulusCloudContainer.add(cloud);
+          stratocumulusCloudContainer1.add(cloud1);
+
+          latitude = cameraPosLat + i + Math.random() * step;
+          longitude = cameraPosLon + j + Math.random() * step;
+          altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
+          var cloud2 = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
+            billboard: {
+              image: `./images/cumulus_${Math.floor(Math.random() * 2) + 1}.png`, // TODO: make actual cumulus clusters. Right now it's just really big cumulus clouds. 
+              sizeInMeters: true,
+              scale: Math.floor(Math.random() * 6) + 5,
+              color: new Cesium.Color(1.0, 1.0, 1.0, 0.99)
+            },
+          });
+          stratocumulusCloudContainer2.add(cloud2);
         }
       }
     }
@@ -132,10 +163,10 @@
           // Compute a random altitude between two altitudes which clouds typically appears
           let altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
           // Primitives work better because it doesn't have the black bug
-          const w = longitude - epsilon;
-          const s = latitude - epsilon;
-          const e = longitude + epsilon;
-          const n = latitude + epsilon;
+          let w = longitude - epsilon;
+          let s = latitude - epsilon;
+          let e = longitude + epsilon;
+          let n = latitude + epsilon;
           var rectangleInstance = new Cesium.GeometryInstance({
             geometry : new Cesium.RectangleGeometry({
                 rectangle : Cesium.Rectangle.fromDegrees(w,s,e,n),
@@ -177,8 +208,7 @@
           let longitude = cameraPosLon + j + Math.random() * step;
           // Compute a random altitude between two altitudes which clouds typically appears
           let altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
-          var cloud = viewer.entities.add({
-            parent: verticalCloudContainer,
+          var cloud1 = viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
             billboard: {
               image: `./images/vertical_1.png`,
@@ -186,34 +216,99 @@
               scale: Math.floor(Math.random() * 8) + 7
             },
           });
-          verticalCloudContainer.add(cloud);
+          verticalCloudContainer1.add(cloud1);
+
+          latitude = cameraPosLat + i + Math.random() * step;
+          longitude = cameraPosLon + j + Math.random() * step;
+          altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
+          var cloud2 = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
+            billboard: {
+              image: `./images/vertical_1.png`,
+              sizeInMeters: true,
+              scale: Math.floor(Math.random() * 8) + 7
+            },
+          });
+          verticalCloudContainer2.add(cloud2);
         }
       }
     }
 
-    // UI ACTION LISTENERS
+    function resetClouds() {
+      console.log("resetting cloud...")
+
+      // entities.removeAll();
+      // viewer.scene.primitives.removeAll();
+
+      cumulusCloudContainer1.removeAll();
+      cumulusCloudContainer2.removeAll();
+
+      stratocumulusCloudContainer1.removeAll();
+      stratocumulusCloudContainer2.removeAll();
+
+      verticalCloudContainer1.removeAll();
+      verticalCloudContainer2.removeAll();
+
+      altostratusCloudContainerPrimitive.removeAll();
+      cumulusLayer(0);
+      stratocumulusLayer();
+      altostratusLayer();
+      verticalClouds();
+    }
+
+    // UI COMPONENTS
+    var cloudDensitySlider = document.querySelector("#loud-density-range");
+   // var cloudHeightSlider = document.querySelector("#loud-height-range");
     var UI_toggleCumulusLayer = document.querySelector('#toggle-cumulus-layer');
-    UI_toggleCumulusLayer.addEventListener('change', function () {
-      cumulusCloudContainer.show = UI_toggleCumulusLayer.checked;
-    });
-
     var UI_toggleStatocumulusLayer = document.querySelector('#toggle-stratocumulus-layer');
-    UI_toggleStatocumulusLayer.addEventListener('change', function () {
-      stratocumulusCloudContainer.show = UI_toggleStatocumulusLayer.checked;
+    var UI_toggleAltostratusLayer = document.querySelector('#toggle-altostratus-layer');
+    var UI_toggleVerticalLayer = document.querySelector('#toggle-vertical-layer');
+
+    // UI ACTION LISTENERS
+    UI_toggleCumulusLayer.addEventListener('change', function () {
+      cumulusCloudContainer1.show = UI_toggleCumulusLayer.checked;
+      cumulusCloudContainer2.show = cloudDensitySlider.value === "2" ? UI_toggleCumulusLayer.checked : cumulusCloudContainer2.show;
     });
 
-    var UI_toggleAltostratusLayer = document.querySelector('#toggle-altostratus-layer');
+    UI_toggleStatocumulusLayer.addEventListener('change', function () {
+      stratocumulusCloudContainer1.show = UI_toggleStatocumulusLayer.checked;
+      stratocumulusCloudContainer2.show = cloudDensitySlider.value === "3" ? UI_toggleStatocumulusLayer.checked : stratocumulusCloudContainer2.show;
+    });
+
     UI_toggleAltostratusLayer.addEventListener('change', function () {
       if(UI_toggleAltostratusLayer.checked)
         altostratusLayer();
       else  
         altostratusCloudContainerPrimitive.removeAll();
+      // altostratusCloudContainerPrimitive.show = UI_toggleAltostratusLayer.checked;
     });
 
-    var UI_toggleVerticalLayer = document.querySelector('#toggle-vertical-layer');
     UI_toggleVerticalLayer.addEventListener('change', function () {
-      verticalCloudContainer.show = UI_toggleVerticalLayer.checked;
+      verticalCloudContainer1.show = UI_toggleVerticalLayer.checked;
+      verticalCloudContainer2.show = cloudDensitySlider.value === "4" ? UI_toggleVerticalLayer.checked : verticalCloudContainer2.show;
     });
+
+    function changeCloudDensity(sliderValue) {
+      if (sliderValue === "1") {
+        cumulusCloudContainer2.show = false;
+        stratocumulusCloudContainer2.show = false;
+        verticalCloudContainer2.show = false;
+      }
+      else if (sliderValue === "2") {
+        cumulusCloudContainer2.show = true;
+        stratocumulusCloudContainer2.show = false;
+        verticalCloudContainer2.show = false;
+      }
+      else if (sliderValue === "3") {
+        cumulusCloudContainer2.show = true;
+        stratocumulusCloudContainer2.show = true;
+        verticalCloudContainer2.show = false;
+      } else {
+        cumulusCloudContainer2.show = true;
+        stratocumulusCloudContainer2.show = true;
+        verticalCloudContainer2.show = true;
+      }
+    }
 
     // CAMERA 
     function resetView() {
@@ -226,14 +321,25 @@
         duration: 3
       })
     }
-    resetView();
 
+    // If the distance between the camera's previous position and current position are greater than a defined value, 
+    // then regenerate clouds
+    // TODO: EntityCollection.removeAll doesn't seem to remove
+    camera.moveEnd.addEventListener(function () {
+      const currCameraPos = camera.position;
+      //console.log(prevCameraPos);
+      //console.log(currCameraPos);
+      const distance = Cesium.Cartesian3.distance(prevCameraPos, currCameraPos);
+      //console.log(distance);
+      if(distance > 1000) {
+        resetClouds();
+      }
+      currCameraPos.clone(prevCameraPos);
+    });
+    
     // Adding layers
-    //cumulusLayer();
-    //stratocumulusLayer();
-    altostratusLayer();
-    //verticalClouds();
-    //viewer.zoomTo(viewer.entities);
+    resetView();
+    //resetClouds();
 
 
   </script>
