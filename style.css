@@ -13,6 +13,8 @@ body {
   position: absolute;
   top: 3%;
   z-index: 2;
+  background-color: rgba(54, 61, 68, 0.479);
+  padding: 2%;
 }
 #white-text {
   color: white;
