@@ -40,7 +40,7 @@
     const camera = viewer.scene.camera;
     var entities = viewer.entities;
     viewer.scene.moon = undefined;
-    viewer.scene.skyAtmosphere.brightnessShift = 0.6;
+    viewer.scene.skyAtmosphere.brightnessShift = 0.4;
     let prevCameraPos = new Cesium.Cartesian3();
     camera.position.clone(prevCameraPos);
 
@@ -67,7 +67,7 @@
 
       // Generate some random positions to place clouds around the camera position
       const size = 1; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
-      const step = 0.4;
+      const step = 0.2;
       const maxCloudAltitude = 3e3;
       const minCloudAltitude = 2e3;
       for (let i = -size / 2; i < size / 2 + step; i += step) {
@@ -203,7 +203,7 @@
       const cameraPosLat = cameraPos.latitude * 180 / Math.PI;
       const cameraPosLon = cameraPos.longitude * 180 / Math.PI;
       // Generate some random positions to place clouds around the camera position
-      const size = 1; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
+      const size = 2; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
       const step = 0.3;
       const maxCloudAltitude = 9e3;
       const minCloudAltitude = 8e3;
@@ -225,7 +225,7 @@
             name: 'Altostratus Clouds',
             position: position,
             model: {
-              uri: './assets/flat1/flat1.gltf',
+              uri: `./assets/flat${Math.floor(Math.random() * 2) + 1}/flat1.gltf`,
               minimumPixelSize: 128,
               scale: 50000,
             },
@@ -428,7 +428,7 @@
     // });
     
     // Adding layers
-    resetView('Bali');
+    resetView('SF');
     resetClouds();
 
   </script>
