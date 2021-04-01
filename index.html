@@ -22,9 +22,9 @@
     <input class="form-check-input" type="checkbox" id="toggle-vertical-layer" name="toggle-vertical-layer" value="VerticalLayer"
     checked>
     <label for="toggle-vertical-layer" id="white-text">Vertical Cloud Layer</label><br>
-    <button type="button" id="return-to-ground-button" class="btn btn-secondary" onclick="resetView()">Return to ground</button><br>
-    <button type="button" id="add-plane-button" class="btn btn-secondary" onclick="" style="margin-top: 5%;">Aircraft view</button>
-    <br>
+    <button type="button" id="return-to-ground-button" class="btn btn-secondary" onclick="resetView('SF')">Return to ground</button><br>
+    <!-- <button type="button" id="add-plane-button" class="btn btn-secondary" onclick="" style="margin-top: 5%;">Aircraft view</button> -->
+    <!-- <br> -->
     <label for="cloud-density-range" id="white-text" class="form-label" style="margin-top: 10%; margin-bottom: -2px;">Cloud Density</label>
     <input type="range" class="form-range" id="cloud-density-range" value="1" min="1" max="4" onchange="changeCloudDensity(this.value)">
     <!-- <br>
@@ -46,15 +46,17 @@
 
     //Create Entity "folders" to allow us to turn on/off entities as a group.
     var cumulusCloudContainer1 = new Cesium.EntityCollection();
-    var cumulusCloudContainer2 = new Cesium.EntityCollection({show: false});
+    // var cumulusCloudContainer2 = new Cesium.EntityCollection({show: false});
 
     var stratocumulusCloudContainer1 = new Cesium.EntityCollection();
-    var stratocumulusCloudContainer2 = new Cesium.EntityCollection({show: false});
+    // var stratocumulusCloudContainer2 = new Cesium.EntityCollection({show: false});
 
     var verticalCloudContainer1 = new Cesium.EntityCollection();
-    var verticalCloudContainer2 = new Cesium.EntityCollection({show: false});
+    // var verticalCloudContainer2 = new Cesium.EntityCollection({show: false});
 
     var altostratusCloudContainerPrimitive = new Cesium.PrimitiveCollection();
+
+    var altostratusCloudContainerGltf = new Cesium.EntityCollection();
 
     // CLOUD GENERATION FUNCTIONS
     function cumulusLayer(plusAltitude) {
@@ -77,25 +79,27 @@
           var cloud1 = viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
             billboard: {
-              image: `./images/cumulus_${Math.floor(Math.random() * 6) + 1}.png`,
+              image: `./images/cumulus_bright_${Math.floor(Math.random() * 8) + 1}.png`,
               sizeInMeters: true,
               scale: Math.floor(Math.random() * 6) + 4
             },
           });
           cumulusCloudContainer1.add(cloud1);
 
+          /*
           latitude = cameraPosLat + i + Math.random() * step;
           longitude = cameraPosLon + j + Math.random() * step;
           altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude + plusAltitude;
           var cloud2 = viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
             billboard: {
-              image: `./images/cumulus_${Math.floor(Math.random() * 6) + 1}.png`,
+              image: `./images/cumulus_bright_${Math.floor(Math.random() * 8) + 1}.png`,
               sizeInMeters: true,
               scale: Math.floor(Math.random() * 6) + 4
             },
           });
           cumulusCloudContainer2.add(cloud2)
+          */
         }
       }
     }
@@ -128,6 +132,7 @@
           });
           stratocumulusCloudContainer1.add(cloud1);
 
+          /*
           latitude = cameraPosLat + i + Math.random() * step;
           longitude = cameraPosLon + j + Math.random() * step;
           altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
@@ -141,6 +146,7 @@
             },
           });
           stratocumulusCloudContainer2.add(cloud2);
+          */
         }
       }
     }
@@ -191,6 +197,53 @@
       }
     }
 
+    function altostratusLayerGLTF() {
+      // Get position of camera (in Cartesian3)
+      const cameraPos = camera.positionCartographic;
+      const cameraPosLat = cameraPos.latitude * 180 / Math.PI;
+      const cameraPosLon = cameraPos.longitude * 180 / Math.PI;
+      // Generate some random positions to place clouds around the camera position
+      const size = 1; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
+      const step = 0.3;
+      const maxCloudAltitude = 9e3;
+      const minCloudAltitude = 8e3;
+      const epsilon = 0.2;
+
+      for (let i = -size / 2; i < size / 2 + step; i += step) {
+        for (let j = -size / 2; j < size / 2 + step; j += step) {
+          let latitude = cameraPosLat + i + Math.random() * step;
+          let longitude = cameraPosLon + j + Math.random() * step;
+          // Compute a random altitude between two altitudes which clouds typically appears
+          let altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
+          var position = Cesium.Cartesian3.fromDegrees(
+            longitude,
+            latitude,
+            altitude
+          );
+          
+          var entity = viewer.entities.add({
+            name: 'Altostratus Clouds',
+            position: position,
+            model: {
+              uri: './assets/flat1/flat1.gltf',
+              minimumPixelSize: 128,
+              scale: 50000,
+            },
+          });
+          altostratusCloudContainerGltf.add(entity);
+          /*
+          var cloud = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(0, 0, 100),
+            model: {
+              uri: Cesium.IonResource.fromAssetId(99386),
+            },
+          });
+          */
+        }
+      }
+    
+    }
+
     function verticalClouds() {
       // Get position of camera (in Cartesian3)
       const cameraPos = camera.positionCartographic;
@@ -218,6 +271,7 @@
           });
           verticalCloudContainer1.add(cloud1);
 
+          /*
           latitude = cameraPosLat + i + Math.random() * step;
           longitude = cameraPosLon + j + Math.random() * step;
           altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
@@ -230,6 +284,7 @@
             },
           });
           verticalCloudContainer2.add(cloud2);
+          */
         }
       }
     }
@@ -241,19 +296,20 @@
       // viewer.scene.primitives.removeAll();
 
       cumulusCloudContainer1.removeAll();
-      cumulusCloudContainer2.removeAll();
+      //cumulusCloudContainer2.removeAll();
 
       stratocumulusCloudContainer1.removeAll();
-      stratocumulusCloudContainer2.removeAll();
+      //stratocumulusCloudContainer2.removeAll();
 
       verticalCloudContainer1.removeAll();
-      verticalCloudContainer2.removeAll();
+      //verticalCloudContainer2.removeAll();
 
       altostratusCloudContainerPrimitive.removeAll();
       cumulusLayer(0);
-      stratocumulusLayer();
-      altostratusLayer();
-      verticalClouds();
+      //stratocumulusLayer();
+      //altostratusLayer();
+      //verticalClouds();
+      altostratusLayerGLTF();
     }
 
     // UI COMPONENTS
@@ -267,12 +323,12 @@
     // UI ACTION LISTENERS
     UI_toggleCumulusLayer.addEventListener('change', function () {
       cumulusCloudContainer1.show = UI_toggleCumulusLayer.checked;
-      cumulusCloudContainer2.show = cloudDensitySlider.value === "2" ? UI_toggleCumulusLayer.checked : cumulusCloudContainer2.show;
+      //cumulusCloudContainer2.show = cloudDensitySlider.value === "2" ? UI_toggleCumulusLayer.checked : cumulusCloudContainer2.show;
     });
 
     UI_toggleStatocumulusLayer.addEventListener('change', function () {
       stratocumulusCloudContainer1.show = UI_toggleStatocumulusLayer.checked;
-      stratocumulusCloudContainer2.show = cloudDensitySlider.value === "3" ? UI_toggleStatocumulusLayer.checked : stratocumulusCloudContainer2.show;
+      //stratocumulusCloudContainer2.show = cloudDensitySlider.value === "3" ? UI_toggleStatocumulusLayer.checked : stratocumulusCloudContainer2.show;
     });
 
     UI_toggleAltostratusLayer.addEventListener('change', function () {
@@ -285,14 +341,15 @@
 
     UI_toggleVerticalLayer.addEventListener('change', function () {
       verticalCloudContainer1.show = UI_toggleVerticalLayer.checked;
-      verticalCloudContainer2.show = cloudDensitySlider.value === "4" ? UI_toggleVerticalLayer.checked : verticalCloudContainer2.show;
+      //verticalCloudContainer2.show = cloudDensitySlider.value === "4" ? UI_toggleVerticalLayer.checked : verticalCloudContainer2.show;
     });
 
+    /*
     function changeCloudDensity(sliderValue) {
       if (sliderValue === "1") {
         cumulusCloudContainer2.show = false;
         stratocumulusCloudContainer2.show = false;
-        verticalCloudContainer2.show = false;
+        //verticalCloudContainer2.show = false;
       }
       else if (sliderValue === "2") {
         cumulusCloudContainer2.show = true;
@@ -309,38 +366,70 @@
         verticalCloudContainer2.show = true;
       }
     }
+    */
 
     // CAMERA 
-    function resetView() {
-      camera.setView({
-        destination: new Cesium.Cartesian3(-2709226.5068758843, -4271652.782730928, 3871990.2917652987),
-        orientation: {
-          direction: new Cesium.Cartesian3(-0.18947950947081874, 0.8120077307898012, 0.5520334778147933),
-          up: new Cesium.Cartesian3(-0.45337507593664794, -0.5710497241501201, 0.6843633925536277),
-        },
-        duration: 3
-      })
+    function resetView(destination) {
+      if(destination === 'SF') {
+        // SF international airport
+        camera.setView({
+          destination: new Cesium.Cartesian3(-2709226.5068758843, -4271652.782730928, 3871990.2917652987),
+          orientation: {
+            direction: new Cesium.Cartesian3(-0.18947950947081874, 0.8120077307898012, 0.5520334778147933),
+            up: new Cesium.Cartesian3(-0.45337507593664794, -0.5710497241501201, 0.6843633925536277),
+          },
+          duration: 3
+        });
+      } else if (destination === 'Grand Canyon') {
+        // Grand Canyon
+        camera.setView({
+          destination : new Cesium.Cartesian3(-1945615.9263253615, -4780703.859781354, 3737210.5720060025),
+          orientation : {
+              direction : new Cesium.Cartesian3(-0.01599914100814668, 0.74205339011824, 0.6701498292926954),
+              up : new Cesium.Cartesian3(-0.31181675350262616, -0.6405133054849815, 0.7017927170694958),
+          },
+          duration : 3
+        })
+      } else if (destination === 'Bali') {
+        camera.setView({
+            destination : new Cesium.Cartesian3(-2702152.397778656, 5708048.536489683, -912252.4339178709),
+            orientation : {
+                direction : new Cesium.Cartesian3(-0.7995378653216753, -0.5904495411792634, 0.11003881696045308),
+                up : new Cesium.Cartesian3(-0.6004691866452206, 0.7898592933849218, -0.12473593124316368),
+            },
+            duration : 3
+        })
+      } else if (destination === 'NYC') {
+        viewer.scene.primitives.add(Cesium.createOsmBuildings());
+        camera.setView({
+          destination : new Cesium.Cartesian3(1332872.7877280416, -4655290.319355772, 4137550.89272483),
+          orientation : {
+              direction : new Cesium.Cartesian3(0.7357845958004323, 0.6076946300845111, 0.29887834506575367),
+              up : new Cesium.Cartesian3(0.28122511533452027, -0.6756617743182468, 0.6814643066443058),
+          },
+          duration : 3
+        });
+      }
     }
 
     // If the distance between the camera's previous position and current position are greater than a defined value, 
     // then regenerate clouds
     // TODO: EntityCollection.removeAll doesn't seem to remove
-    camera.moveEnd.addEventListener(function () {
-      const currCameraPos = camera.position;
-      //console.log(prevCameraPos);
-      //console.log(currCameraPos);
-      const distance = Cesium.Cartesian3.distance(prevCameraPos, currCameraPos);
-      //console.log(distance);
-      if(distance > 1000) {
-        resetClouds();
-      }
-      currCameraPos.clone(prevCameraPos);
-    });
+    // camera.moveEnd.addEventListener(function () {
+    //   const currCameraPos = camera.position;
+    //   //console.log(prevCameraPos);
+    //   //console.log(currCameraPos);
+    //   const distance = Cesium.Cartesian3.distance(prevCameraPos, currCameraPos);
+    //   //console.log(distance);
+    //   if(distance > 1000) {
+    //     resetClouds();
+    //   }
+    //   currCameraPos.clone(prevCameraPos);
+    // });
     
     // Adding layers
-    resetView();
-    //resetClouds();
-
+    resetView('Bali');
+    resetClouds();
 
   </script>
 </body>
