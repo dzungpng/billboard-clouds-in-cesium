@@ -56,7 +56,7 @@
 
     var altostratusCloudContainerPrimitive = new Cesium.PrimitiveCollection();
 
-    var altostratusCloudContainerGltf = new Cesium.EntityCollection();
+    var altostratusCloudContainer = new Cesium.EntityCollection();
 
     // CLOUD GENERATION FUNCTIONS
     function cumulusLayer(plusAltitude) {
@@ -66,7 +66,7 @@
       const cameraPosLon = cameraPos.longitude * 180 / Math.PI;
 
       // Generate some random positions to place clouds around the camera position
-      const size = 1; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
+      const size = 2; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
       const step = 0.2;
       const maxCloudAltitude = 3e3;
       const minCloudAltitude = 2e3;
@@ -81,7 +81,7 @@
             billboard: {
               image: `./images/cumulus_bright_${Math.floor(Math.random() * 8) + 1}.png`,
               sizeInMeters: true,
-              scale: Math.floor(Math.random() * 6) + 4
+              scale: Math.floor(Math.random() * 6) + 4,
             },
           });
           cumulusCloudContainer1.add(cloud1);
@@ -98,7 +98,7 @@
               scale: Math.floor(Math.random() * 6) + 4
             },
           });
-          cumulusCloudContainer2.add(cloud2)
+          cumulusCloudContainer1.add(cloud2)
           */
         }
       }
@@ -112,7 +112,7 @@
 
       // Generate some random positions to place clouds around the camera position
       const size = 1; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
-      const step = 0.2;
+      const step = 0.4;
       const maxCloudAltitude = 3e3;
       const minCloudAltitude = 2e3;
       for (let i = -size / 2; i < size / 2 + step; i += step) {
@@ -124,7 +124,7 @@
           var cloud1 = viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
             billboard: {
-              image: `./images/cumulus_${Math.floor(Math.random() * 2) + 1}.png`, // TODO: make actual cumulus clusters. Right now it's just really big cumulus clouds. 
+              image: `./images/stratocumulus_${Math.floor(Math.random() * 2) + 1}.png`, // TODO: make actual cumulus clusters. Right now it's just really big cumulus clouds. 
               sizeInMeters: true,
               scale: Math.floor(Math.random() * 6) + 5,
               color: new Cesium.Color(1.0, 1.0, 1.0, 0.99)
@@ -157,53 +157,7 @@
       const cameraPosLat = cameraPos.latitude * 180 / Math.PI;
       const cameraPosLon = cameraPos.longitude * 180 / Math.PI;
       // Generate some random positions to place clouds around the camera position
-      const size = 1; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
-      const step = 0.4;
-      const maxCloudAltitude = 9e3;
-      const minCloudAltitude = 8e3;
-      const epsilon = 0.2;
-      for (let i = -size / 2; i < size / 2 + step; i += step) {
-        for (let j = -size / 2; j < size / 2 + step; j += step) {
-          let latitude = cameraPosLat + i + Math.random() * step;
-          let longitude = cameraPosLon + j + Math.random() * step;
-          // Compute a random altitude between two altitudes which clouds typically appears
-          let altitude = Math.floor(Math.random() * maxCloudAltitude) + minCloudAltitude;
-          // Primitives work better because it doesn't have the black bug
-          let w = longitude - epsilon;
-          let s = latitude - epsilon;
-          let e = longitude + epsilon;
-          let n = latitude + epsilon;
-          var rectangleInstance = new Cesium.GeometryInstance({
-            geometry : new Cesium.RectangleGeometry({
-                rectangle : Cesium.Rectangle.fromDegrees(w,s,e,n),
-                height: altitude,
-            })
-          });
-          var prim = new Cesium.Primitive({
-              geometryInstances: rectangleInstance,
-              appearance: new Cesium.MaterialAppearance({
-                  material : Cesium.Material.fromType("Image", {
-                      image: `../images/flat_1.png`,
-                      repeat : new Cesium.Cartesian2(1, 1),
-                      color: new Cesium.Color(1.0, 1.0, 1.0, 0.99)
-                  }),
-                  faceForward : false,
-                  translucent: true
-              })
-          });
-          viewer.scene.primitives.add(prim);
-          altostratusCloudContainerPrimitive.add(prim);
-        }
-      }
-    }
-
-    function altostratusLayerGLTF() {
-      // Get position of camera (in Cartesian3)
-      const cameraPos = camera.positionCartographic;
-      const cameraPosLat = cameraPos.latitude * 180 / Math.PI;
-      const cameraPosLon = cameraPos.longitude * 180 / Math.PI;
-      // Generate some random positions to place clouds around the camera position
-      const size = 2; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
+      const size = 3; // 1 = 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
       const step = 0.3;
       const maxCloudAltitude = 9e3;
       const minCloudAltitude = 8e3;
@@ -230,7 +184,7 @@
               scale: 50000,
             },
           });
-          altostratusCloudContainerGltf.add(entity);
+          altostratusCloudContainer.add(entity);
           /*
           var cloud = viewer.entities.add({
             position: Cesium.Cartesian3.fromDegrees(0, 0, 100),
@@ -252,7 +206,7 @@
 
       // Generate some random positions to place clouds around the camera position
       const size = 1.5; // 1.1132 km. Size of the square area (in degrees) that the clouds will be generated in (1 degrees = 111.32 km)
-      const step = 0.4;
+      const step = 0.5;
       const maxCloudAltitude = 3e3;
       const minCloudAltitude = 2.5e3;
       for (let i = -size / 2; i < size / 2 + step; i += step) {
@@ -266,7 +220,7 @@
             billboard: {
               image: `./images/vertical_1.png`,
               sizeInMeters: true,
-              scale: Math.floor(Math.random() * 8) + 7
+              scale: Math.floor(Math.random() * 6) + 4
             },
           });
           verticalCloudContainer1.add(cloud1);
@@ -304,12 +258,11 @@
       verticalCloudContainer1.removeAll();
       //verticalCloudContainer2.removeAll();
 
-      altostratusCloudContainerPrimitive.removeAll();
+      altostratusCloudContainer.removeAll();
       cumulusLayer(0);
-      //stratocumulusLayer();
-      //altostratusLayer();
-      //verticalClouds();
-      altostratusLayerGLTF();
+      stratocumulusLayer();
+      verticalClouds();
+      altostratusLayer();
     }
 
     // UI COMPONENTS
@@ -335,7 +288,7 @@
       if(UI_toggleAltostratusLayer.checked)
         altostratusLayer();
       else  
-        altostratusCloudContainerPrimitive.removeAll();
+        altostratusCloudContainer.removeAll();
       // altostratusCloudContainerPrimitive.show = UI_toggleAltostratusLayer.checked;
     });
 
@@ -409,6 +362,20 @@
           },
           duration : 3
         });
+      } else if (destination === 'Boston') {
+        var tileset = viewer.scene.primitives.add(
+          new Cesium.Cesium3DTileset({
+            url: Cesium.IonResource.fromAssetId(354759),
+          })
+        );
+        camera.setView({
+            destination : new Cesium.Cartesian3(1532070.8128048617, -4467962.375486895, 4271821.723410038),
+            orientation : {
+                direction : new Cesium.Cartesian3(-0.2209179517798633, 0.6536359637472904, 0.7238475567946203),
+                up : new Cesium.Cartesian3(0.2348649967838243, -0.6846888409970335, 0.6899562481055399),
+            },
+            duration : 3
+        });
       }
     }
 
@@ -428,7 +395,7 @@
     // });
     
     // Adding layers
-    resetView('SF');
+    resetView('NYC');
     resetClouds();
 
   </script>
