@@ -1,5 +1,4 @@
 # Billboard Clouds in CesiumJS
-DMD S2021 Senior Design project.
 
 1. Clone the project
 2. `npm install` to install node packages
